@@ -1,25 +1,23 @@
 import { DiffResult, VersionString } from './types';
 
 export class VersionCheck {
-  private static rx = /^(?:(?<main>[^-]+)-)?v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$/;
+  private static rx = /^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$/;
 
   private static parse(version: VersionString) {
     const match = this.rx.exec(version);
     if (!match || !match.groups) throw new Error(`Invalid version: ${version}`);
 
-    const { main, major, minor, patch } = match.groups;
+    const { major, minor, patch } = match.groups;
 
-    return { main, major, minor, patch };
+    return { major, minor, patch };
   }
 
   public static diff(version1: VersionString, version2: VersionString): DiffResult {
     const result = {
-      main: false,
       major: false,
       minor: false,
       patch: false,
       result: '' as DiffResult['result'],
-      isMainChanged: false,
       isMajorChanged: false,
       isMinorChanged: false,
       isPatchChanged: false,
@@ -46,14 +44,6 @@ export class VersionCheck {
       result.isMinorChanged = true;
       result.isMajorChanged = true;
     }
-    if (v1.main !== v2.main) {
-      result.main = true;
-      result.result = 'version';
-      result.isPatchChanged = true;
-      result.isMinorChanged = true;
-      result.isMajorChanged = true;
-      result.isMainChanged = true;
-    }
 
     return result;
   }
@@ -68,9 +58,5 @@ export class VersionCheck {
 
   public static isMajorChanged(version1: VersionString, version2: VersionString) {
     return this.diff(version1, version2).isMajorChanged;
-  }
-
-  public static isVersionChanged(version1: VersionString, version2: VersionString) {
-    return this.diff(version1, version2).isMainChanged;
   }
 }
