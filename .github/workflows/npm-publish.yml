@@ -1,5 +1,5 @@
 name: Publish to npm
-run-name: publishing version $(node -p "require('./package.json').version")
+run-name: Publish to npm
 
 on:
   push:
@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: write
 
     steps:
       - name: Checkout repository
@@ -22,6 +23,24 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
           cache: 'npm'
+
+      - name: Read package version
+        id: pkg
+        run: echo "version=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+
+      - name: Set run name to include version
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.pkg.outputs.version }}';
+            const { owner, repo } = context.repo;
+            await github.rest.actions.updateWorkflowRun({
+              owner,
+              repo,
+              run_id: context.runId,
+              name: `publishing version ${version}`,
+            });
 
       - name: Install dependencies
         run: npm ci
